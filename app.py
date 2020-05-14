@@ -16,7 +16,7 @@ class Todo(db.Model):
     __tablename__ = 'todos'
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(), nullable=False)
-    completed = db.Column(db.Boolean, nullable=False, default=False)
+    completed = db.Column(db.Boolean,  default=False)
     list_id = db.Column(db.Integer, db.ForeignKey('todolists.id'), nullable=False)
 
     def __repr__(self):
@@ -28,7 +28,7 @@ class TodoList(db.Model):
     name = db.Column(db.String(), nullable=False)
     todos = db.relationship('Todo', backref='list', lazy=True)
 
-# db.create_all()
+
 
 
 @app.route("/todos/create", methods=['POST'])
@@ -38,7 +38,9 @@ def create_todo():
     # description = request.form.get('description', '') //HTML form
     try:
         description = request.get_json()['description']
+        list_id = request.get_json()['list_id']
         todo = Todo(description=description)
+        todo.list = active_list
         db.session.add(todo)
         db.session.commit()
         body['description'] = todo.description
@@ -50,7 +52,7 @@ def create_todo():
     finally:
         db.session.close()
     if error:
-        abort(400)
+        abort(500)
     else:
         return jsonify(body)
 
